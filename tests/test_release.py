@@ -13,7 +13,7 @@ class ReleaseTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             paths = ['README.md', 'docs/assets/benchmark.svg', 'skill/tool.py', 'skill/tool.py.before-v1-compat',
-                     'skill/routing.json', 'skill/.env', '.git/config', 'dist/old.zip',
+                     'skill/runtime.json', 'skill/.env', '.git/config', 'dist/old.zip',
                      'skill/__pycache__/cache.py', 'auth.json', 'tests/test_synthetic.py']
             for name in paths:
                 p = root / name
@@ -26,7 +26,10 @@ class ReleaseTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             (root / 'outside.txt').write_text('private')
-            (root / 'README.md').symlink_to(root / 'outside.txt')
+            try:
+                (root / 'README.md').symlink_to(root / 'outside.txt')
+            except OSError as exc:
+                self.skipTest(f'symlink creation unavailable: {exc}')
             with self.assertRaises(ValueError):
                 release.selected(root)
 

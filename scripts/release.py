@@ -25,7 +25,7 @@ def selected(root=ROOT):
             continue
         if any(part.startswith('.') or part == '__pycache__' for part in rel.parts) and rel.as_posix() != '.gitignore':
             continue
-        if '.before-' in p.name or p.name in {'routing.json', 'receipt.json', 'auth.json'}:
+        if '.before-' in p.name or p.name in {'runtime.json', 'receipt.json', 'auth.json'}:
             continue
         if rel.as_posix() in ROOT_FILES or (rel.parts[0] in TREES and p.suffix in SUFFIXES):
             files.append(p)
@@ -54,7 +54,7 @@ def main():
         version = (ROOT / 'VERSION').read_text().strip()
         if not version or any(c not in '0123456789.-abcdefghijklmnopqrstuvwxyz' for c in version):
             raise SystemExit('Unsafe version.')
-        folder = f'astra-flash-orchestrator-{version}'
+        folder = f'skilled-{version}'
         out = ROOT / 'dist' / f'{folder}.zip'
         out.parent.mkdir(exist_ok=True)
         with zipfile.ZipFile(out, 'w', compression=zipfile.ZIP_DEFLATED) as archive:

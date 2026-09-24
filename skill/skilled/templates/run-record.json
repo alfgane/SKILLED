@@ -1,0 +1,34 @@
+{
+  "schema_version": 1,
+  "work_order": {
+    "id": "REPLACE_ME",
+    "goal": "REPLACE_ME",
+    "workspace": "REPLACE_ME",
+    "baseline": "REPLACE_ME",
+    "architecture": "REPLACE_ME",
+    "contracts": ["REPLACE_ME"],
+    "allowed_paths": ["REPLACE_ME"],
+    "acceptance": ["REPLACE_ME"],
+    "tests": ["REPLACE_ME"],
+    "out_of_scope": ["REPLACE_ME"],
+    "escalate_if": ["REPLACE_ME"]
+  },
+  "worker_result": {
+    "task_id": "REPLACE_ME",
+    "status": "ready_for_review",
+    "changed_files": [],
+    "checks": [],
+    "acceptance_results": [
+      {"criterion": "REPLACE_ME", "status": "unverified", "evidence": "REPLACE_ME"}
+    ],
+    "failures": [],
+    "resume_action": "REPLACE_ME"
+  },
+  "review": {
+    "task_id": "REPLACE_ME",
+    "diff_reviewed": false,
+    "decision": "blocked",
+    "findings": [],
+    "correction_package": []
+  }
+}

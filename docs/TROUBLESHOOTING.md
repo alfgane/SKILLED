@@ -1,58 +1,48 @@
 # Troubleshooting
 
-## The skill is missing
+## Codex CLI or app-server cannot be inspected
 
-Check that installation ended with `Installed` or `Already installed`, not only a successful dry run. The expected file is `~/.agents/skills/astra-flash-orchestrator/SKILL.md`. Fully quit/reopen the host app, then start an Astra session. Check custom home locations and client skill discovery before reinstalling.
+Confirm `codex` is on PATH and current enough to provide `app-server`,
+`account/read`, `model/list`, and `features list`. SKILLED does not install or
+upgrade Codex.
 
-## Expected worker route is missing or different
+## ChatGPT login is required
 
-The direct default is `deepseek/deepseek-v4.1-flash`. A new alternate-provider
-install requires the exact documented `--worker-route`. An installed doctor or
-later update reuses the valid generated routing binding automatically; a doctor
-run from a fresh source checkout needs the option again. Establish the
-Router/provider configuration using the Router's own documentation first. An
-entry in a model catalog alone does not establish credentials or paid inference
-access. The installer does not auto-detect or silently substitute a provider.
+The installer rejects `account.type = apiKey` and a missing account. Run
+`codex login` using ChatGPT, then retry. Do not paste credentials into chat.
 
-Enter API keys yourself through the Router's private local prompt; never paste
-one into assistant chat. If the route is absent, stop package installation and
-finish provider setup separately.
+## Sol or xhigh is unavailable
 
-## Router URL is rejected
+Availability comes from the current account's app-server catalog. The exact
+`gpt-5.6-sol` entry must advertise `xhigh`. Update Codex or resolve account/workspace
+model access. Do not rename another model or lower reasoning to bypass preflight.
 
-Only HTTP(S) loopback URLs are accepted. Supported paths are `/v1` and `/_codex-router/<capability>/v1`, optionally with a trailing slash. Remote endpoints, queries, fragments and embedded URL credentials are rejected. Do not post a private capability URL in an issue.
+## External provider override is rejected
 
-## Static doctor passes but live catalog check fails
+The effective config/profile cannot select a nonnative `model_provider` or set
+`openai_base_url`; either could route the child away from the ChatGPT subscription.
+SKILLED reports the setting class without printing URLs or credentials and never
+edits it automatically.
 
-The optional doctor request deliberately does not read authentication files or send credentials. A Router requiring authentication may reject `/models`; a stopped Router or network restriction may also cause failure. Normal Codex requests can use an authenticated route. Keep authentication enabled and use the Router's documented diagnostic tools. Report only redacted HTTP status/error categories.
+## Native agents are disabled
 
-## The offline HTTP fixture cannot bind a port
+`codex features list` must report `multi_agent ... true`, and `[agents].enabled`
+must not be false. Repair/update the environment or change your own configuration
+deliberately; the installer does not override it.
 
-One test starts a temporary local HTTP server. A restrictive sandbox can block it. Run the offline suite in an environment that permits a loopback fixture through the normal approval mechanism. Do not disable security controls or skip the failed test and call the suite passing.
+## Role or skill is missing after installation
 
-## Custom role is unavailable in a new session
+Confirm apply completed, then fully quit/reopen Codex. Expected files are
+`~/.agents/skills/skilled/SKILL.md` and
+`$CODEX_HOME/agents/skilled_sol_worker.toml`.
 
-The installed client must support standalone personal agent TOML files and expose native delegation. Files on disk do not prove the running tool supports them. Check your installed client and project/managed overrides. Do not fall back to a different model or external agent CLI.
+## Existing package files conflict
 
-## Existing skill or role conflicts
+The installer refuses differing package-owned files unless `--replace` is used.
+Review the existing files first. Replacement is backed up in the receipt.
 
-The installer refuses symlinked targets, duplicate skill locations and differing package-owned files. Review existing content before using `--replace`; keep the resulting receipt. Do not remove unrelated skills to resolve discovery.
+## Undo refuses
 
-## Undo refuses because a file changed
-
-This protects later edits, including changes to the shared personal AGENTS file. Preserve those edits, compare the receipt and backup locally, then reconcile deliberately. Do not publish receipts or original instruction backups.
-
-## No savings or quality guarantee
-
-Provider usage and real task outcomes determine cost and quality. Offline tests validate installation and planning helpers, not the performance of either model. Request metadata is routing evidence; a worker's self-description is not.
-
-## Flash is visible in the picker but unavailable for delegation
-
-The merged catalog must advertise the exact selected route with
-`multi_agent_version: "v2"`. A model entry or default-subagent setting alone is
-insufficient. Use the installed Router's documented selection and catalog
-publication controls, then fully quit/reopen the app. Do not let an installation
-assistant run `subagents certify`, `test-model --live`, a smoke test or another
-paid probe to make this check pass. Decide separately whether to spend provider
-credit on certification yourself. Do not manually falsify certification records
-or claim selection proves runtime capability.
+An installed file changed after installation or a backup no longer matches the
+receipt. Preserve the newer edit and reconcile manually; guarded undo will not
+overwrite it.

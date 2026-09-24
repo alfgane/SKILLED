@@ -84,13 +84,12 @@ def paths_overlap(left: str, right: str) -> bool:
 
 
 def validate(plan: object, root: Path) -> dict:
-    if not isinstance(plan, dict) or plan.get("schema_version") != 1:
-        raise PlanError("Expected schema_version 1.")
+    if not isinstance(plan, dict) or plan.get("schema_version") != 2:
+        raise PlanError("Expected schema_version 2.")
     text(plan.get("project"), "project")
     document(plan.get("spec"), "spec", root)
-    capacity = plan.get("max_flash_workers", 1)
-    if type(capacity) is not int or capacity not in {1, 2}:
-        raise PlanError("max_flash_workers must be 1 or 2.")
+    if "max_flash_workers" in plan or "max_workers" in plan:
+        raise PlanError("Fixed worker caps are not part of schema 2; use dependency and workspace boundaries to decide dispatches.")
     phases = graph(objects(plan.get("phases"), "phases"), "phase")
     tasks = graph(objects(plan.get("tasks"), "tasks"), "task")
     for phase in phases.values():
@@ -103,12 +102,10 @@ def validate(plan: object, root: Path) -> dict:
         name = task["id"]
         if task.get("phase") not in phases:
             raise PlanError(f"Task {name} refers to a missing phase.")
-        if task.get("executor") not in {"astra", "flash"}:
-            raise PlanError(f"Task {name} executor must be astra or flash.")
+        if task.get("executor") not in {"astra", "sol"}:
+            raise PlanError(f"Task {name} executor must be astra or sol.")
         if task.get("risk") not in {"normal", "sensitive"}:
             raise PlanError(f"Task {name} needs risk normal or sensitive.")
-        if task["risk"] == "sensitive" and task["executor"] != "astra":
-            raise PlanError(f"Sensitive task {name} must remain with Astra; split safe supporting work into another task.")
         if task.get("state") not in {"planned", "ready", "running", "review", "changes_requested", "accepted", "blocked"}:
             raise PlanError(f"Task {name} has an invalid state.")
         document(task.get("brief"), f"Task {name} brief", root)
@@ -134,8 +131,8 @@ def validate(plan: object, root: Path) -> dict:
     def depends_on(name: str, other: str) -> bool:
         return other in tasks[name]["depends_on"] or any(depends_on(dep, other) for dep in tasks[name]["depends_on"])
     for group, members in groups.items():
-        if len(members) > capacity or any(t["executor"] != "flash" for t in members):
-            raise PlanError(f"Parallel group {group} exceeds worker capacity or includes a non-Flash executor.")
+        if any(t["executor"] != "sol" for t in members):
+            raise PlanError(f"Parallel group {group} includes a non-Sol executor.")
         if len({t["phase"] for t in members}) != 1:
             raise PlanError(f"Parallel group {group} crosses phase boundaries.")
         for i, left in enumerate(members):
@@ -143,7 +140,7 @@ def validate(plan: object, root: Path) -> dict:
                 overlap = any(paths_overlap(a, b) for a in left["allowed_paths"] for b in right["allowed_paths"])
                 if overlap or depends_on(left["id"], right["id"]) or depends_on(right["id"], left["id"]):
                     raise PlanError(f"Parallel group {group} has overlapping paths or dependent tasks.")
-    return {"status": "structure-valid", "phases": len(phases), "tasks": len(tasks), "max_flash_workers": capacity,
+    return {"status": "structure-valid", "phases": len(phases), "tasks": len(tasks),
             "note": "No commands were run. Readiness, workspaces, permissions, semantic correctness and acceptance are not verified."}
 
 

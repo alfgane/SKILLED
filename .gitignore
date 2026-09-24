@@ -7,10 +7,10 @@ __pycache__/
 .env
 .env.*
 !.env.example
-routing.json
+runtime.json
 receipt.json
 config.toml
 auth.json
-astra-flash-install-backups/
+skilled-install-backups/
 dist/
 .venv/

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Preview/install the Astra + Flash skill without changing Codex model/provider settings."""
+"""Preview/install SKILLED without changing Codex account or model settings."""
 from __future__ import annotations
 import argparse
 import hashlib
@@ -16,12 +16,12 @@ if sys.version_info < (3, 11):
     raise SystemExit("Python 3.11+ is required. No packages or settings were changed.")
 sys.dont_write_bytecode = True
 BUNDLE = Path(__file__).resolve().parent
-SKILL_SOURCE = BUNDLE / "skill" / "astra-flash-orchestrator"
+SKILL_SOURCE = BUNDLE / "skill" / "skilled"
 sys.path.insert(0, str(SKILL_SOURCE / "scripts"))
-from local_config import SetupError, default_locations, inspect, resolve_worker_route, ROLE, SKILL, SUPPORTED_ROUTES
+from native_codex import SetupError, default_locations, inspect, ROLE, SKILL
 
-BEGIN = b"<!-- BEGIN astra-flash-orchestrator managed policy -->"
-END = b"<!-- END astra-flash-orchestrator managed policy -->"
+BEGIN = b"<!-- BEGIN skilled managed policy -->"
+END = b"<!-- END skilled managed policy -->"
 
 
 def digest(data: bytes | None) -> str | None:
@@ -62,7 +62,7 @@ def managed_policy(original: bytes, block: bytes) -> bytes:
 def atomic_write(path: Path, data: bytes, mode: int = 0o600) -> None:
     no_symlinks(path)
     path.parent.mkdir(parents=True, exist_ok=True)
-    fd, name = tempfile.mkstemp(prefix=".astra-flash-", dir=path.parent)
+    fd, name = tempfile.mkstemp(prefix=".skilled-", dir=path.parent)
     try:
         with os.fdopen(fd, "wb") as stream:
             stream.write(data)
@@ -91,22 +91,21 @@ def plan_changes(home: Path, codex_home: Path, report: dict, with_policy: bool, 
                 and source.suffix not in {".pyc", ".pyo", ".bak"}
                 and ".before-" not in source.name and source.name != ".DS_Store"):
             requested[target / source.relative_to(SKILL_SOURCE)] = source.read_bytes()
-    routing = {
+    runtime = {
         key: report[key]
-        for key in ("worker_model", "worker_provider", "worker_effort", "custom_agent", "profile_inspected")
+        for key in ("worker_model", "worker_effort", "custom_agent", "catalog_source", "authentication", "profile_inspected")
     }
-    requested[target / "routing.json"] = (json.dumps(routing, indent=2) + "\n").encode()
+    requested[target / "runtime.json"] = (json.dumps(runtime, indent=2) + "\n").encode()
     instructions = (BUNDLE / "WORKER-INSTRUCTIONS.md").read_text(encoding="utf-8").strip()
     # JSON basic strings are valid TOML basic strings for these generated values.
     role = (
         f'name = {json.dumps(ROLE)}\n'
-        'description = "Implement an Astra-approved task bundle using the installed Flash route; never orchestrate or self-approve."\n'
+        'description = "Implement and verify one Astra-approved work order with native GPT-5.6 Sol xhigh, then return evidence for review."\n'
         f'model = {json.dumps(report["worker_model"])}\n'
+        f'model_reasoning_effort = {json.dumps(report["worker_effort"])}\n'
     )
-    if report["worker_effort"]:
-        role += f'model_reasoning_effort = {json.dumps(report["worker_effort"])}\n'
     role += f'developer_instructions = {json.dumps(instructions, ensure_ascii=False)}\n\n'
-    role += '# Inherit the parent sandbox/approvals. Prevent recursive subagent spawning.\n[agents]\nenabled = false\n'
+    role += '# Sandbox, approvals, tools, and other session settings inherit from the parent.\n'
     requested[role_path] = role.encode()
     policy_path = None
     if with_policy:
@@ -125,17 +124,21 @@ def plan_changes(home: Path, codex_home: Path, report: dict, with_policy: bool, 
     return changes
 
 
-def apply_changes(changes: list[dict], codex_home: Path, input_hashes: dict[str, str]) -> Path | None:
+def apply_changes(changes: list[dict], codex_home: Path, input_hashes: dict[str, str | None]) -> Path | None:
     if not changes:
         return None
     for name, expected in input_hashes.items():
-        if digest(Path(name).read_bytes()) != expected:
+        source = Path(name)
+        if source.is_symlink():
+            raise SetupError("The Codex configuration changed to a symlink during inspection. Rerun the installer.")
+        current = source.read_bytes() if source.exists() else None
+        if digest(current) != expected:
             raise SetupError("The Codex configuration changed during inspection. Rerun the installer.")
     for change in changes:
         if contents(change["path"]) != change["before"]:
             raise SetupError("An installation target changed during inspection. Rerun the installer.")
     stamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ") + "-" + uuid.uuid4().hex[:8]
-    backup_dir = codex_home / "astra-flash-install-backups" / stamp
+    backup_dir = codex_home / "skilled-install-backups" / stamp
     no_symlinks(backup_dir)
     backup_dir.parent.mkdir(parents=True, mode=0o700, exist_ok=True)
     backup_dir.mkdir(mode=0o700)
@@ -169,8 +172,8 @@ def apply_changes(changes: list[dict], codex_home: Path, input_hashes: dict[str,
 
 def undo(receipt: Path, home: Path, codex_home: Path, apply: bool) -> None:
     no_symlinks(receipt)
-    if ".." in receipt.parts or not receipt.resolve().is_relative_to((codex_home / "astra-flash-install-backups").resolve()):
-        raise SetupError("The receipt must be inside this CODEX_HOME's astra-flash-install-backups folder.")
+    if ".." in receipt.parts or not receipt.resolve().is_relative_to((codex_home / "skilled-install-backups").resolve()):
+        raise SetupError("The receipt must be inside this CODEX_HOME's skilled-install-backups folder.")
     record = json.loads(receipt.read_text())
     if record.get("format") != 1 or record.get("status") != "installed":
         raise SetupError("This receipt does not describe an installed, undoable transaction.")
@@ -224,12 +227,8 @@ def main() -> int:
     parser.add_argument("--replace", action="store_true", help="back up and replace different existing package-owned files")
     parser.add_argument("--home", help="override HOME (primarily for isolated tests)")
     parser.add_argument("--codex-home", help="override CODEX_HOME")
-    parser.add_argument("--profile", help="inspect a specific existing profile; does not change profile selection")
-    parser.add_argument(
-        "--worker-route",
-        choices=SUPPORTED_ROUTES,
-        help="pin one reviewed DeepSeek V4.1 Flash provider route (default: existing binding, then direct DeepSeek API)",
-    )
+    parser.add_argument("--profile", help="inspect a specific existing Codex profile without modifying it")
+    parser.add_argument("--codex-bin", default="codex", help="Codex CLI executable used for read-only native capability checks")
     parser.add_argument("--undo", type=Path, metavar="RECEIPT", help="preview restoration from an installation receipt; combine with --apply to restore")
     args = parser.parse_args()
     try:
@@ -237,9 +236,7 @@ def main() -> int:
         if args.undo:
             undo(args.undo, home, codex_home, args.apply)
             return 0
-        binding = home / ".agents" / "skills" / SKILL / "routing.json"
-        worker_route = resolve_worker_route(args.worker_route, binding)
-        report, _private_url = inspect(home, codex_home, args.profile, worker_route)
+        report = inspect(home, codex_home, args.codex_bin, args.profile)
         changes = plan_changes(home, codex_home, report, not args.no_policy, args.replace)
         print(json.dumps(report, indent=2))
         for change in changes:
@@ -249,8 +246,8 @@ def main() -> int:
             return 0
         receipt = apply_changes(changes, codex_home, report["input_hashes"])
         print(f"Installed. Undo receipt: {receipt}" if receipt else "Already installed; no changes needed.")
-        print("config.toml and router/authentication files were not written. No model request was made.")
-        print("Fully quit/reopen the host app, then start an Astra session. Runtime model identity still needs a real delegated-task check.")
+        print("config.toml and authentication files were not written. No inference request was made.")
+        print("Fully quit/reopen the host app, start an Astra session, then invoke $skilled.")
         return 0
     except (SetupError, OSError, ValueError) as exc:
         message = str(exc) if isinstance(exc, SetupError) else f"Local installation error ({type(exc).__name__}); inspect locally."

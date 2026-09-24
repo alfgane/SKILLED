@@ -1,36 +1,87 @@
 # Validation evidence
 
-Unreleased candidate based on version 1.2.0. Checked September 20, 2026 on macOS
-with Python 3.14.3.
+SKILLED is based on upstream commit `bcc7f9ea` and replaces the provider-specific
+execution seam while retaining Work Orders, Astra acceptance, atomic installation,
+backup, guarded undo, structural plan validation, and deterministic packaging.
 
-## Verified
+## Architecture map
 
-- 63 offline tests passed. Coverage includes installation dry runs, idempotence,
-  original configuration preservation, scoped policy handling,
-  profile/collision/symlink checks, URL validation, fake-secret redaction,
-  generated role TOML, rollback, guarded undo, plan validation and release-file
-  filtering.
-- Every documented V4.1 Flash route is accepted only when explicitly selected or
-  preserved from an existing valid package binding and advertised as
-  `multi_agent_version: "v2"`. Tests cover OpenRouter role generation, remembered
-  update behavior, unreviewed-route rejection, uncertified-route rejection and
-  refusal to fall back from direct DeepSeek to an available alternate provider.
-- Native `/v1` and capability-path Router configurations are accepted; non-loopback hosts and unsupported URL shapes are rejected.
-- Existing backup-directory permissions are preserved.
-- Backup files and caches are excluded from skill installation. Release tests also cover private artifact exclusion, symlink rejection and inventory changes.
+| Concern | Upstream | SKILLED |
+| --- | --- | --- |
+| Planning and acceptance | Astra skill/policy/templates | Preserved and clarified |
+| Worker | `astra_flash_builder` | `skilled_sol_worker` |
+| Model/effort | Router catalog route/default effort | Custom agent pins `gpt-5.6-sol` / `xhigh` |
+| Authentication | External provider credentials | Native `account/read` requires `chatgpt` |
+| Catalog | Configured `model_catalog_json` | App-server `model/list(includeHidden: true)` |
+| Dispatch | Native subagent role | Native subagent role |
+| Result | Report + actual diff + Astra review | Preserved |
+| Correction | Batched, fixed default ceiling | Batched without an invented universal ceiling |
 
-All tests use synthetic configuration, temporary directories and a local HTTP fixture. They do not require a provider account or invoke model inference. Python 3.11 is the minimum supported syntax/runtime target, but this release's local suite was run on 3.14.3; other versions and operating systems have not been tested here.
+The removed ceiling matters because the user's required stopping condition is a
+correct, reviewed implementation. A fixed package-wide correction count could
+force an incomplete stop even while a useful in-scope recovery remains. The
+preferred shape remains one substantial run and one batched correction when that
+is enough.
 
-## Prior local installation evidence
+## What offline tests prove
 
-The preceding package revision was installed in a macOS Codex setup using an Astra root and the exact Flash worker route. Static configuration checks passed; root configuration and authentication bytes were preserved. Its optional unauthenticated local catalog GET was rejected. The public revision's installer is verified with synthetic homes; this report does not claim it was reapplied to that real installation.
+- native account/model/effort response validation;
+- rejection of API-key auth, missing Sol, missing xhigh, disabled agents, and
+  effective external provider/base URL overrides;
+- generated role TOML selects the exact worker and effort;
+- no provider, Router, or API-key field enters installed artifacts;
+- executable run-record validation covers Work Order completeness, successful
+  completion, failure propagation/resume, acceptance evidence, batched correction,
+  and mandatory final-diff review;
+- dry-run safety, config preservation, atomic rollback, guarded undo, collision
+  and symlink defenses, policy preservation, plan validation, and release inventory.
 
-## Still unverified
+Offline fixtures do not make inference calls. A live read-only doctor verifies the
+current machine's account, feature, and model catalog and reports
+`capability_preflight_verified: true`. It always reports
+`desktop_worker_delegation_verified: false` because app-server inspection is not
+a worker run. A native Codex Desktop delegation is required to prove end-to-end
+worker completion and output quality.
 
-Actual delegated inference through the newly supported alternate providers,
-native role loading for those routes in a fresh session, provider request
-attribution, long-running build quality and cost savings remain unverified for
-this candidate. A static report, a model catalog entry, or a worker naming itself
-cannot establish these facts.
+## Codex Desktop native delegation smoke
 
-Validate real routing during the first authorized useful task, using host/router request metadata. Do not run an extra paid test as part of installation, and do not publish raw private logs or local configuration as evidence.
+On 2026-09-24, a Codex Desktop task used the native `collaboration.spawn_agent`
+surface with `model: gpt-5.6-sol` and `reasoning_effort: xhigh`. The child task was
+`/root/desktop_sol_smoke`, working in the isolated scratch repository
+`work/smoke-target` from baseline commit `b7d3882`.
+
+The worker received one Work Order and needed no correction pass. It implemented a
+monthly account report across four files:
+
+- `README.md`
+- `ledger/cli.py`
+- `ledger/report.py`
+- `tests/test_ledger.py`
+
+The worker reported 6/6 passing unit tests. It also ran the sample application's
+own CLI:
+
+```text
+python -m ledger.cli monthly data/sample.csv 2026-09
+{"acme": 3800, "bee": 2300}
+```
+
+That command exercised the scratch Python application; it was not `codex exec`.
+No Codex CLI worker was used for this Desktop smoke. Astra independently inspected
+the actual four-file diff and reran the six tests successfully.
+
+This is direct evidence that the Codex Desktop native spawn surface accepted the
+requested Sol model and xhigh effort and completed a reviewed worker delegation.
+External provider traffic was not packet-captured, so this record does not claim
+network-level routing proof.
+
+The installed `$skilled` skill and `skilled_sol_worker` custom role have not yet
+been tested for discovery and automatic loading in a fresh Codex Desktop task after
+an app restart. That installed-path smoke remains a separate release validation
+step.
+
+## Future task evidence records
+
+For later useful tasks, record the host-observed worker model/effort, working
+directory, task/thread identifier, actual diff, command exits, correction packages,
+and Astra's acceptance decision. Do not publish private account or repository data.
