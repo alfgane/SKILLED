@@ -1,9 +1,9 @@
 ---
-name: skilled
+name: astra-op
 description: Use GPT-6 Astra to plan and review substantial software work while a native GPT-5.6 Sol xhigh custom agent implements, tests, and debugs one complete Work Order. Use for bounded multi-file builds, features, migrations, and refactors. Skip simple direct edits and plan-only requests.
 ---
 
-# SKILLED: Astra → Sol xhigh → Astra
+# Astra OP: Astra → Sol xhigh → Astra
 
 Use only Codex Desktop native subagents. Prefer the installed
 `skilled_sol_worker` role, which pins `gpt-5.6-sol` with

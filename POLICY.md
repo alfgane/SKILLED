@@ -1,7 +1,7 @@
 <!-- BEGIN skilled managed policy -->
-## SKILLED: Astra orchestration with native Sol implementation
+## Astra OP: Astra orchestration with native Sol implementation
 
-For substantial implementation work, load `$skilled`. Keep GPT-6 Astra as the
+For substantial implementation work, load `$astra-op`. Keep GPT-6 Astra as the
 planner, architecture owner, and final reviewer. Prefer complete Work Orders sent
 to the native `skilled_sol_worker`, whose installed custom agent pins
 `gpt-5.6-sol` and `xhigh` reasoning through the current ChatGPT/Codex session. If

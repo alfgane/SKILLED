@@ -2,8 +2,9 @@
 
 **Astra plans and reviews. GPT-5.6 Sol xhigh implements, tests, and debugs.**
 
-SKILLED is a native Codex Desktop skill for substantial software work. It keeps
-GPT-6 Astra responsible for scope, architecture, acceptance, and consolidated
+SKILLED packages **Astra OP**, a native Codex Desktop skill for substantial
+software work. Its display name is **Astra OP** and its invocation is
+`$astra-op`. It keeps GPT-6 Astra responsible for scope, architecture, acceptance, and consolidated
 review, then dispatches one complete Work Order to GPT-5.6 Sol with xhigh
 reasoning. It prefers the installed named role and has a native Desktop fallback
 that explicitly requests the same model and effort.
@@ -72,7 +73,7 @@ The first installer command is a dry run. Apply writes only:
 
 | Location | Content |
 | --- | --- |
-| `~/.agents/skills/skilled/` | Skill, references, templates, doctor, validator, and generated `runtime.json` |
+| `~/.agents/skills/astra-op/` | Skill, references, templates, doctor, validator, and generated `runtime.json` |
 | `$CODEX_HOME/agents/skilled_sol_worker.toml` | Native custom agent pinned to `gpt-5.6-sol` + `xhigh` |
 | `$CODEX_HOME/AGENTS.md` or nonempty `AGENTS.override.md` | Marked SKILLED policy block |
 | `$CODEX_HOME/skilled-install-backups/` | Before-images and guarded undo receipt |
@@ -84,6 +85,10 @@ permissions and sandbox.
 For a nondefault location, pass `--home` and `--codex-home`. The app-server check
 runs against that `CODEX_HOME`. Use `--no-policy` for a skill/role-only install.
 Use `--replace` only after reviewing an existing package-owned file.
+
+If upgrading from an installation of `$skilled`, use its original undo receipt
+to remove that skill first. The new installer does not silently remove a
+previously installed skill.
 
 Undo uses the exact receipt printed by apply:
 
@@ -100,7 +105,7 @@ overwritten.
 Fully quit and reopen Codex after installation, select Astra as the parent, then:
 
 ```text
-$skilled Implement the approved design in docs/plan.md. Create one complete Work
+$astra-op Implement the approved design in docs/plan.md. Create one complete Work
 Order for Sol xhigh, let it implement and run its test/fix loop, then review the
 actual diff and evidence in one consolidated pass.
 ```
@@ -108,13 +113,13 @@ actual diff and evidence in one consolidated pass.
 Run the doctor at any time:
 
 ```sh
-python -B skill/skilled/scripts/doctor.py
+python -B skill/astra-op/scripts/doctor.py
 ```
 
 Validate an optional machine-readable Work Order/result/review record with:
 
 ```sh
-python -B skill/skilled/scripts/validate_run.py path/to/run-record.json
+python -B skill/astra-op/scripts/validate_run.py path/to/run-record.json
 ```
 
 A passing doctor proves only the read-only installer preflight: native ChatGPT

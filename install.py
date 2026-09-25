@@ -16,7 +16,7 @@ if sys.version_info < (3, 11):
     raise SystemExit("Python 3.11+ is required. No packages or settings were changed.")
 sys.dont_write_bytecode = True
 BUNDLE = Path(__file__).resolve().parent
-SKILL_SOURCE = BUNDLE / "skill" / "skilled"
+SKILL_SOURCE = BUNDLE / "skill" / "astra-op"
 sys.path.insert(0, str(SKILL_SOURCE / "scripts"))
 from native_codex import SetupError, default_locations, inspect, ROLE, SKILL
 
@@ -247,7 +247,7 @@ def main() -> int:
         receipt = apply_changes(changes, codex_home, report["input_hashes"])
         print(f"Installed. Undo receipt: {receipt}" if receipt else "Already installed; no changes needed.")
         print("config.toml and authentication files were not written. No inference request was made.")
-        print("Fully quit/reopen the host app, start an Astra session, then invoke $skilled.")
+        print("Fully quit/reopen the host app, start an Astra session, then invoke $astra-op.")
         return 0
     except (SetupError, OSError, ValueError) as exc:
         message = str(exc) if isinstance(exc, SetupError) else f"Local installation error ({type(exc).__name__}); inspect locally."

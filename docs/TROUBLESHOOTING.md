@@ -33,7 +33,7 @@ deliberately; the installer does not override it.
 ## Role or skill is missing after installation
 
 Confirm apply completed, then fully quit/reopen Codex. Expected files are
-`~/.agents/skills/skilled/SKILL.md` and
+`~/.agents/skills/astra-op/SKILL.md` and
 `$CODEX_HOME/agents/skilled_sol_worker.toml`.
 
 If the current task reports `unknown agent_type 'skilled_sol_worker'`, its agent

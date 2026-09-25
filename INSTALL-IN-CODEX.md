@@ -16,7 +16,7 @@ CLI, or separate runtime. Do not make an inference request during installation.
 
 Preserve config.toml, authentication, root model/effort, global subagent defaults,
 sandbox, permissions, and unrelated instructions byte-for-byte. Do not change
-settings to make preflight pass. Install only the skilled skill, the native
+settings to make preflight pass. Install only the astra-op skill, the native
 skilled_sol_worker role, and the marked policy block. Retain the undo receipt.
 
 Run the installed doctor. Report installed paths, native model/effort evidence,

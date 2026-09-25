@@ -21,7 +21,7 @@ import tomllib
 WORKER_MODEL = "gpt-5.6-sol"
 WORKER_EFFORT = "xhigh"
 ROLE = "skilled_sol_worker"
-SKILL = "skilled"
+SKILL = "astra-op"
 
 AGENT_SCALAR_SETTINGS = frozenset({
     "enabled",
@@ -143,7 +143,7 @@ class AppServerClient:
         threading.Thread(target=self._read, args=(self.process.stdout,), daemon=True).start()
         try:
             self.request(1, "initialize", {
-                "clientInfo": {"name": "skilled_installer", "title": "SKILLED installer", "version": "2.0.1"}
+                "clientInfo": {"name": "skilled_installer", "title": "SKILLED installer", "version": "2.1.0"}
             })
             self.notify("initialized", {})
         except BaseException:

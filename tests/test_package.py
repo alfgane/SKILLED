@@ -14,7 +14,7 @@ import unittest
 from unittest.mock import patch
 
 ROOT = Path(__file__).resolve().parents[1]
-SCRIPTS = ROOT / "skill" / "skilled" / "scripts"
+SCRIPTS = ROOT / "skill" / "astra-op" / "scripts"
 sys.path.insert(0, str(SCRIPTS))
 sys.path.insert(0, str(ROOT))
 
@@ -247,6 +247,17 @@ class InstallerTests(unittest.TestCase):
     def changes(self, replace=False, policy=True):
         return install.plan_changes(self.home, self.codex, self.report, policy, replace)
 
+    def test_astra_op_is_the_installed_skill_identity(self):
+        self.assertEqual(SKILL, "astra-op")
+        source = ROOT / "skill" / SKILL
+        self.assertIn("name: astra-op", (source / "SKILL.md").read_text())
+        metadata = (source / "agents" / "openai.yaml").read_text()
+        self.assertIn('display_name: "Astra OP"', metadata)
+        self.assertIn("$astra-op", metadata)
+        paths = [change["path"] for change in self.changes()]
+        self.assertTrue(any(path == self.home / ".agents" / "skills" / "astra-op" / "SKILL.md" for path in paths))
+        self.assertFalse(any("skilled" in path.parts for path in paths))
+
     def apply(self):
         return install.apply_changes(self.changes(), self.codex, self.report["input_hashes"])
 
@@ -424,8 +435,8 @@ class PolicyAndWorkflowTests(unittest.TestCase):
             install.managed_policy(install.BEGIN, b"new")
 
     def test_work_order_covers_worker_success_and_failure_contracts(self):
-        brief = (ROOT / "skill" / "skilled" / "templates" / "task-brief.md").read_text()
-        report = (ROOT / "skill" / "skilled" / "templates" / "task-report.md").read_text()
+        brief = (ROOT / "skill" / "astra-op" / "templates" / "task-brief.md").read_text()
+        report = (ROOT / "skill" / "astra-op" / "templates" / "task-report.md").read_text()
         for required in ("Goal and non-goals", "Relevant architecture and files", "Fixed contracts", "Acceptance criteria", "Verification"):
             self.assertIn(required, brief)
         for status in ("ready_for_review", "blocked", "failed"):
@@ -433,8 +444,8 @@ class PolicyAndWorkflowTests(unittest.TestCase):
         self.assertIn("resume action", report.lower())
 
     def test_correction_and_final_diff_review_are_explicit(self):
-        skill = (ROOT / "skill" / "skilled" / "SKILL.md").read_text()
-        review = (ROOT / "skill" / "skilled" / "references" / "review.md").read_text()
+        skill = (ROOT / "skill" / "astra-op" / "SKILL.md").read_text()
+        review = (ROOT / "skill" / "astra-op" / "references" / "review.md").read_text()
         self.assertIn("correction package", skill)
         self.assertIn("same worker", skill)
         self.assertRegex(skill, r"actual changed\s+and untracked files")
@@ -443,8 +454,8 @@ class PolicyAndWorkflowTests(unittest.TestCase):
 
     def test_no_hard_worker_or_correction_cap_in_workflow(self):
         text = "\n".join((ROOT / name).read_text() for name in (
-            "POLICY.md", "skill/skilled/SKILL.md", "skill/skilled/references/execution.md",
-            "skill/skilled/references/review.md",
+            "POLICY.md", "skill/astra-op/SKILL.md", "skill/astra-op/references/execution.md",
+            "skill/astra-op/references/review.md",
         ))
         self.assertNotIn("at most one correction", text.lower())
         self.assertNotIn("max_workers", text)

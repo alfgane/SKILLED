@@ -85,7 +85,7 @@ On 2026-09-25, the installer successfully wrote a custom role file that pins
 `gpt-5.6-sol` / `xhigh`, but the already-running Desktop task returned
 `unknown agent_type 'skilled_sol_worker'`. This proves the role was not exposed in
 that task's registry. It does not prove how discovery behaves in a fresh Desktop
-process after a full restart. Installed `$skilled` discovery, named-role dispatch,
+process after a full restart. Installed `$astra-op` discovery, named-role dispatch,
 and host-observed effective model/effort in a fresh task remain separate release
 validation steps.
 

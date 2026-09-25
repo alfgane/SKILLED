@@ -1,5 +1,13 @@
 # Changelog
 
+## 2.1.0 - 2026-09-25
+
+- Name the installed skill **Astra OP** in Codex Desktop and invoke it as
+  `$astra-op`. The GitHub fork and release package remain named SKILLED.
+- Keep the native `skilled_sol_worker` role and its Sol xhigh configuration.
+- Remove the previous `$skilled` installation before installing this release
+  so only the requested skill name appears in Desktop.
+
 ## 2.0.1 - 2026-09-25
 
 - Prefer the installed `skilled_sol_worker` role, then fall back to a Codex

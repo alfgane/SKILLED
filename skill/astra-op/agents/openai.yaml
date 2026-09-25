@@ -1,0 +1,4 @@
+interface:
+  display_name: "Astra OP"
+  short_description: "Astra plans and reviews; native Sol xhigh implements and verifies."
+  default_prompt: "Use $astra-op to turn this substantial request into one complete Sol xhigh Work Order, then review the actual diff and evidence."
