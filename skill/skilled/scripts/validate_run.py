@@ -5,6 +5,7 @@ from __future__ import annotations
 import argparse
 import json
 from pathlib import Path
+import re
 import sys
 
 
@@ -34,8 +35,8 @@ def strings(value: object, label: str, *, allow_empty: bool = False) -> list[str
 
 def validate(payload: object) -> dict:
     root = mapping(payload, "run record")
-    if root.get("schema_version") != 1:
-        raise RunError("Expected schema_version 1.")
+    if root.get("schema_version") != 2:
+        raise RunError("Expected schema_version 2.")
 
     order = mapping(root.get("work_order"), "work_order")
     task_id = text(order.get("id"), "work_order.id")
@@ -43,6 +44,32 @@ def validate(payload: object) -> dict:
         text(order.get(key), f"work_order.{key}")
     for key in ("contracts", "allowed_paths", "acceptance", "tests", "out_of_scope", "escalate_if"):
         strings(order.get(key), f"work_order.{key}")
+
+    dispatch = mapping(root.get("dispatch"), "dispatch")
+    dispatch_path = dispatch.get("path")
+    if dispatch_path not in {"custom_role", "explicit_model_fallback"}:
+        raise RunError("dispatch.path must be custom_role or explicit_model_fallback.")
+    if dispatch.get("requested_model") != "gpt-5.6-sol":
+        raise RunError("dispatch.requested_model must be gpt-5.6-sol.")
+    if dispatch.get("requested_reasoning_effort") != "xhigh":
+        raise RunError("dispatch.requested_reasoning_effort must be xhigh.")
+    fork_turns = text(dispatch.get("fork_turns"), "dispatch.fork_turns")
+    agent_type = dispatch.get("agent_type")
+    fallback_reason = text(dispatch.get("fallback_reason"), "dispatch.fallback_reason")
+    if dispatch_path == "custom_role":
+        if agent_type != "skilled_sol_worker":
+            raise RunError("The custom_role path must use skilled_sol_worker.")
+        if fallback_reason != "not_applicable":
+            raise RunError("The custom_role path must mark fallback_reason as not_applicable.")
+    else:
+        if agent_type != "omitted":
+            raise RunError("The explicit_model_fallback path must omit agent_type.")
+        if fork_turns == "all" or not (fork_turns == "none" or re.fullmatch(r"[1-9][0-9]*", fork_turns)):
+            raise RunError("The explicit_model_fallback path requires fork_turns none or a positive turn count.")
+        if fallback_reason == "not_applicable":
+            raise RunError("The explicit_model_fallback path must record why the custom role was unavailable.")
+    observed_model = text(dispatch.get("observed_model"), "dispatch.observed_model")
+    observed_effort = text(dispatch.get("observed_reasoning_effort"), "dispatch.observed_reasoning_effort")
 
     worker = mapping(root.get("worker_result"), "worker_result")
     if text(worker.get("task_id"), "worker_result.task_id") != task_id:
@@ -104,6 +131,9 @@ def validate(payload: object) -> dict:
     return {
         "status": "workflow-contract-valid",
         "task_id": task_id,
+        "dispatch_path": dispatch_path,
+        "model_observed": observed_model == "gpt-5.6-sol",
+        "reasoning_effort_observed": observed_effort == "xhigh",
         "worker_status": status,
         "review_decision": decision,
         "checks_recorded": len(checks),

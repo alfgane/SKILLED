@@ -9,11 +9,11 @@ backup, guarded undo, structural plan validation, and deterministic packaging.
 | Concern | Upstream | SKILLED |
 | --- | --- | --- |
 | Planning and acceptance | Astra skill/policy/templates | Preserved and clarified |
-| Worker | `astra_flash_builder` | `skilled_sol_worker` |
-| Model/effort | Router catalog route/default effort | Custom agent pins `gpt-5.6-sol` / `xhigh` |
+| Worker | `astra_flash_builder` | Preferred `skilled_sol_worker`; explicit native fallback |
+| Model/effort | Router catalog route/default effort | Custom role pins, or native fallback requests, `gpt-5.6-sol` / `xhigh` |
 | Authentication | External provider credentials | Native `account/read` requires `chatgpt` |
 | Catalog | Configured `model_catalog_json` | App-server `model/list(includeHidden: true)` |
-| Dispatch | Native subagent role | Native subagent role |
+| Dispatch | Native subagent role | Codex Desktop custom role or no-role native spawn |
 | Result | Report + actual diff + Astra review | Preserved |
 | Correction | Batched, fixed default ceiling | Batched without an invented universal ceiling |
 
@@ -32,7 +32,9 @@ is enough.
 - no provider, Router, or API-key field enters installed artifacts;
 - executable run-record validation covers Work Order completeness, successful
   completion, failure propagation/resume, acceptance evidence, batched correction,
-  and mandatory final-diff review;
+  mandatory final-diff review, and both native dispatch paths;
+- fallback validation requires the exact Sol/xhigh request, an omitted fixed
+  agent type, non-full-history `fork_turns`, and a recorded fallback reason;
 - dry-run safety, config preservation, atomic rollback, guarded undo, collision
   and symlink defenses, policy preservation, plan validation, and release inventory.
 
@@ -46,9 +48,12 @@ worker completion and output quality.
 ## Codex Desktop native delegation smoke
 
 On 2026-09-24, a Codex Desktop task used the native `collaboration.spawn_agent`
-surface with `model: gpt-5.6-sol` and `reasoning_effort: xhigh`. The child task was
-`/root/desktop_sol_smoke`, working in the isolated scratch repository
-`work/smoke-target` from baseline commit `b7d3882`.
+surface. Its request supplied `model: gpt-5.6-sol` and
+`reasoning_effort: xhigh`, but it also selected the built-in `executor` role,
+whose role metadata fixes another model. The tool result did not expose the
+actual worker model or effort. The child task was `/root/desktop_sol_smoke`,
+working in the isolated scratch repository `work/smoke-target` from baseline
+commit `b7d3882`.
 
 The worker received one Work Order and needed no correction pass. It implemented a
 monthly account report across four files:
@@ -70,15 +75,29 @@ That command exercised the scratch Python application; it was not `codex exec`.
 No Codex CLI worker was used for this Desktop smoke. Astra independently inspected
 the actual four-file diff and reran the six tests successfully.
 
-This is direct evidence that the Codex Desktop native spawn surface accepted the
-requested Sol model and xhigh effort and completed a reviewed worker delegation.
-External provider traffic was not packet-captured, so this record does not claim
-network-level routing proof.
+This is direct evidence of a completed and reviewed Codex Desktop native worker
+delegation. It is not evidence that the worker actually ran Sol or xhigh: those
+were request parameters, and the host did not report the effective model. External
+provider traffic was not packet-captured, so this record also makes no
+network-level routing claim.
 
-The installed `$skilled` skill and `skilled_sol_worker` custom role have not yet
-been tested for discovery and automatic loading in a fresh Codex Desktop task after
-an app restart. That installed-path smoke remains a separate release validation
-step.
+On 2026-09-25, the installer successfully wrote a custom role file that pins
+`gpt-5.6-sol` / `xhigh`, but the already-running Desktop task returned
+`unknown agent_type 'skilled_sol_worker'`. This proves the role was not exposed in
+that task's registry. It does not prove how discovery behaves in a fresh Desktop
+process after a full restart. Installed `$skilled` discovery, named-role dispatch,
+and host-observed effective model/effort in a fresh task remain separate release
+validation steps.
+
+The same day, a fresh native fallback probe called `collaboration.spawn_agent`
+with no `agent_type`, `fork_turns: "none"`, `model: "gpt-5.6-sol"`, and
+`reasoning_effort: "xhigh"`. Desktop accepted the call and the child task
+`/root/desktop_sol_override_probe` completed a read-only inspection of the
+installed role TOML, reporting its Sol/xhigh lines. The child also reported that
+trustworthy host metadata did not expose its effective runtime model or effort.
+This proves that Desktop accepts and runs the documented explicit-model fallback
+shape; it does not prove that the effective worker model matched the request or
+the inspected role file. No Codex CLI worker was used.
 
 ## Future task evidence records
 

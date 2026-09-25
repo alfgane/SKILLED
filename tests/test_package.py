@@ -385,13 +385,19 @@ class PolicyAndWorkflowTests(unittest.TestCase):
     def record(self) -> dict:
         criterion = "Behavior matches the approved contract"
         return {
-            "schema_version": 1,
+            "schema_version": 2,
             "work_order": {
                 "id": "T1", "goal": "Implement behavior", "workspace": "C:/repo",
                 "baseline": "abc123 clean", "architecture": "Use the existing service boundary",
                 "contracts": ["Keep public API stable"], "allowed_paths": ["src/", "tests/"],
                 "acceptance": [criterion], "tests": ["python -m unittest"],
                 "out_of_scope": ["Deployment"], "escalate_if": ["Public API must change"],
+            },
+            "dispatch": {
+                "path": "custom_role", "agent_type": "skilled_sol_worker",
+                "requested_model": "gpt-5.6-sol", "requested_reasoning_effort": "xhigh",
+                "fork_turns": "all", "fallback_reason": "not_applicable",
+                "observed_model": "unverified", "observed_reasoning_effort": "unverified",
             },
             "worker_result": {
                 "task_id": "T1", "status": "ready_for_review", "changed_files": ["src/a.py"],
@@ -446,8 +452,46 @@ class PolicyAndWorkflowTests(unittest.TestCase):
 
     def test_successful_worker_completion_and_acceptance_contract(self):
         result = validate_run(self.record())
+        self.assertEqual(result["dispatch_path"], "custom_role")
+        self.assertFalse(result["model_observed"])
+        self.assertFalse(result["reasoning_effort_observed"])
         self.assertEqual(result["worker_status"], "ready_for_review")
         self.assertEqual(result["review_decision"], "accepted")
+
+    def test_explicit_model_fallback_omits_fixed_role_and_records_route(self):
+        record = self.record()
+        record["dispatch"].update({
+            "path": "explicit_model_fallback", "agent_type": "omitted",
+            "fork_turns": "none", "fallback_reason": "unknown agent_type skilled_sol_worker",
+            "observed_model": "gpt-5.6-sol", "observed_reasoning_effort": "xhigh",
+        })
+        result = validate_run(record)
+        self.assertEqual(result["dispatch_path"], "explicit_model_fallback")
+        self.assertTrue(result["model_observed"])
+        self.assertTrue(result["reasoning_effort_observed"])
+
+    def test_explicit_model_fallback_rejects_fixed_role_or_full_history(self):
+        record = self.record()
+        record["dispatch"].update({
+            "path": "explicit_model_fallback", "agent_type": "executor",
+            "fork_turns": "none", "fallback_reason": "custom role unavailable",
+        })
+        with self.assertRaisesRegex(RunError, "omit agent_type"):
+            validate_run(record)
+        record["dispatch"]["agent_type"] = "omitted"
+        record["dispatch"]["fork_turns"] = "all"
+        with self.assertRaisesRegex(RunError, "fork_turns"):
+            validate_run(record)
+
+    def test_dispatch_requires_exact_sol_xhigh_request(self):
+        record = self.record()
+        record["dispatch"]["requested_model"] = "gpt-5.6-luna"
+        with self.assertRaisesRegex(RunError, "gpt-5.6-sol"):
+            validate_run(record)
+        record = self.record()
+        record["dispatch"]["requested_reasoning_effort"] = "high"
+        with self.assertRaisesRegex(RunError, "xhigh"):
+            validate_run(record)
 
     def test_worker_failure_is_propagated_with_resume_action(self):
         record = self.record()

@@ -36,6 +36,13 @@ Confirm apply completed, then fully quit/reopen Codex. Expected files are
 `~/.agents/skills/skilled/SKILL.md` and
 `$CODEX_HOME/agents/skilled_sol_worker.toml`.
 
+If the current task reports `unknown agent_type 'skilled_sol_worker'`, its agent
+registry may predate the installation. This does not prove that a fresh Desktop
+process will also miss the role. Continue the current Work Order through the
+documented native fallback: omit `agent_type`, explicitly request
+`gpt-5.6-sol` / `xhigh`, and use `fork_turns = "none"` or a positive bounded turn
+count. Do not use a built-in fixed-model role or `codex exec`.
+
 ## Existing package files conflict
 
 The installer refuses differing package-owned files unless `--replace` is used.

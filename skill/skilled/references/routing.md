@@ -9,9 +9,9 @@ model = "gpt-5.6-sol"
 model_reasoning_effort = "xhigh"
 ```
 
-Codex custom-agent settings take precedence for that spawned session. Sandbox,
-approval, and other session settings inherit from the parent because SKILLED does
-not override them.
+Codex custom-agent settings take precedence when the Desktop task exposes the
+role. Sandbox, approval, and other session settings inherit from the parent
+because SKILLED does not override them.
 
 The installer opens one read-only `codex app-server` connection, performs the
 required `initialize` handshake, then calls:
@@ -32,8 +32,19 @@ and keeps `desktop_worker_delegation_verified` false. Neither the binding nor th
 doctor claims that a worker ran. For a real Codex Desktop task, retain the
 host-observed child model and effort plus its changed files and test evidence.
 
-If the named role is unavailable after install, fully restart Codex. Do not work
-around it with an external CLI, provider, or API key.
+Prefer the named role. If the current Desktop task reports
+`unknown agent_type 'skilled_sol_worker'`, continue through the native Desktop
+fallback: omit `agent_type`, explicitly request `model = "gpt-5.6-sol"` and
+`reasoning_effort = "xhigh"`, and set `fork_turns` to `"none"` or a positive
+bounded turn count. Do not select a built-in fixed-model role, use
+`fork_turns = "all"`, or work around the error with an external CLI, provider, or
+API key.
+
+An unknown-role result from a Desktop task that was already open during
+installation shows only that task's registry state. It does not prove whether a
+fresh Desktop process will discover the installed role after a full restart.
+Record that distinction instead of treating the failure as a permanent role
+limitation.
 
 Before dispatch in a target repository, inspect its project `.codex/config.toml`
 and applicable managed overrides for an external provider or base URL that could

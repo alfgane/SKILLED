@@ -5,9 +5,10 @@ description: Use GPT-6 Astra to plan and review substantial software work while 
 
 # SKILLED: Astra → Sol xhigh → Astra
 
-Use only Codex native subagents. The installed `skilled_sol_worker` role pins
-`gpt-5.6-sol` with `model_reasoning_effort = "xhigh"`; do not add an explicit
-spawn override that could replace those values. Do not invoke a Router, API key,
+Use only Codex Desktop native subagents. Prefer the installed
+`skilled_sol_worker` role, which pins `gpt-5.6-sol` with
+`model_reasoning_effort = "xhigh"`. If Desktop does not expose that role, use the
+native fallback defined below. Do not invoke `codex exec`, a Router, API key,
 external provider, or separate worker CLI.
 
 ## 1. Orient
@@ -20,8 +21,9 @@ For substantial implementation, state what Astra will decide and what Sol will o
 
 Read `runtime.json` and `references/routing.md`. Run `scripts/doctor.py` against
 the same `CODEX_HOME` when current capability evidence is absent or may have
-changed. Confirm the parent is Astra and the named worker role is available. A
-catalog check proves availability and effort support; it is not task completion.
+changed. Confirm the parent is Astra and determine whether the named worker role
+is exposed to the current Desktop task. A catalog check proves availability and
+effort support; it does not prove role discovery or task completion.
 
 ## 3. Decide architecture and acceptance
 
@@ -49,11 +51,16 @@ it does not execute the worker or decide whether the evidence is true.
 
 ## 5. Dispatch and wait
 
-Read `references/execution.md`. Spawn the installed `skilled_sol_worker` using the
-native subagent tool. Supply the Work Order and exact working directory. Let Sol
-complete its internal test/fix loop. Do not overlap edits in Sol-owned paths or
-poll a healthy run. Continue or message the same child when the host returns a
-bounded wait or Astra resolves a blocker.
+Read `references/execution.md`. First spawn the installed `skilled_sol_worker`
+through the native Desktop subagent tool without model overrides. If the tool
+rejects that role as unknown or unavailable, retry the same complete Work Order
+through a native spawn with `agent_type` omitted, `model = "gpt-5.6-sol"`,
+`reasoning_effort = "xhigh"`, and `fork_turns = "none"` or a positive bounded
+turn count. Do not use a built-in fixed-model role for this fallback. Record which
+dispatch path was used and distinguish requested parameters from host-observed
+model evidence. Let the child complete its internal test/fix loop. Do not overlap
+edits in child-owned paths or poll a healthy run. Continue or message the same
+child when the host returns a bounded wait or Astra resolves a blocker.
 
 ## 6. Review the real result
 
@@ -71,5 +78,7 @@ identified; do not enforce an invented correction count.
 ## 7. Finish
 
 Integrate only within the user's existing Git and production authorization. Record
-the observed child model/effort, changed files, checks, review decision, corrections,
-and remaining limits. Never infer savings from task count or elapsed time.
+the dispatch path and parameters, any host-observed child model/effort, changed
+files, checks, review decision, corrections, and remaining limits. Never report a
+requested model as observed evidence or infer savings from task count or elapsed
+time.

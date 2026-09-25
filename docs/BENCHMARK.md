@@ -7,7 +7,9 @@ per-token pricing is not an applicable package claim.
 Measure a real Astra → Sol → Astra task with:
 
 - task size and acceptance criteria;
-- host-observed parent and worker model/effort;
+- requested parent/worker model and effort, plus separately host-observed values
+  when the host exposes them;
+- worker dispatch path (`custom_role` or `explicit_model_fallback`);
 - Astra turns before dispatch and during review;
 - Sol execution/correction turns;
 - actual changed implementation/test lines, with generated content excluded;

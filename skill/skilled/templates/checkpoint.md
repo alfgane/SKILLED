@@ -2,7 +2,7 @@
 
 Goal/spec/plan: <paths and current objective>
 Workspace/baseline: <path, branch/commit, preserved changes>
-Native routing: <observed parent and worker model/effort evidence>
+Native routing: <dispatch path, requested model/effort, and separately observed evidence or unverified>
 
 ## Accepted work and fixed contracts
 <Decisions and integrated task outputs.>

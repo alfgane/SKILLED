@@ -2,9 +2,13 @@
 ## SKILLED: Astra orchestration with native Sol implementation
 
 For substantial implementation work, load `$skilled`. Keep GPT-6 Astra as the
-planner, architecture owner, and final reviewer. Dispatch complete Work Orders to
-the native `skilled_sol_worker`, whose installed custom agent pins `gpt-5.6-sol`
-and `xhigh` reasoning through the current ChatGPT/Codex session.
+planner, architecture owner, and final reviewer. Prefer complete Work Orders sent
+to the native `skilled_sol_worker`, whose installed custom agent pins
+`gpt-5.6-sol` and `xhigh` reasoning through the current ChatGPT/Codex session. If
+the current Desktop task does not expose that role, use a native spawn with no
+fixed `agent_type`, explicit `gpt-5.6-sol` and `xhigh`, and non-full-history
+`fork_turns`. Record which route was used and do not describe requested parameters
+as observed model evidence.
 
 Prefer one coherent Sol execution bundle and one consolidated Astra review when
 the work has stable contracts. Divide or parallelize only at real dependency,

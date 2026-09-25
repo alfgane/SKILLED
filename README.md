@@ -4,8 +4,9 @@
 
 SKILLED is a native Codex Desktop skill for substantial software work. It keeps
 GPT-6 Astra responsible for scope, architecture, acceptance, and consolidated
-review, then dispatches one complete Work Order to a named Codex agent pinned to
-`gpt-5.6-sol` with `model_reasoning_effort = "xhigh"`.
+review, then dispatches one complete Work Order to GPT-5.6 Sol with xhigh
+reasoning. It prefers the installed named role and has a native Desktop fallback
+that explicitly requests the same model and effort.
 
 ```text
 Astra: inspect → decide contracts → write Work Order
@@ -27,6 +28,9 @@ or separate API billing configuration in this package.
   acceptance criteria, checks, exclusions, permissions, and escalation points.
 - Sol receives a substantial implementation bundle, owns its internal test/fix
   loop, and returns a patch plus evidence.
+- The named custom role is preferred. If the current Desktop task does not expose
+  it, the same Work Order is sent through a native spawn with no fixed agent type
+  and explicit `gpt-5.6-sol` / `xhigh` parameters.
 - Astra reviews actual changed files and test output, not the worker summary alone.
 - Related review findings are batched into a correction package.
 - Installation is previewable, atomic, backed up, and guarded on undo.
@@ -118,8 +122,9 @@ authentication, native-agent availability, and the model/effort catalog entry.
 Its report sets `capability_preflight_verified` to true and
 `desktop_worker_delegation_verified` to false. Only a completed native worker run
 inside Codex Desktop can establish the latter. The first real Desktop task should
-retain the host-observed child model/effort and final diff/test evidence in its
-review record.
+retain the dispatch path, request parameters, any separately host-observed child
+model/effort, and final diff/test evidence in its review record. Requesting a
+model does not by itself prove which model the host ran.
 
 ## Validation and release
 

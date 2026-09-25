@@ -5,11 +5,30 @@ and untracked-file inventory before dispatch. Do not stash, reset, commit, or co
 private files merely to create a baseline. Tell Sol exactly which pre-existing
 changes are visible and which paths it owns.
 
-Spawn `skilled_sol_worker` through the host's native agent tool and provide the full
-Work Order plus exact working directory. Do not pass an explicit model or effort
-override; the installed role owns `gpt-5.6-sol` and `xhigh`. Use the same workspace
-when the worker must see uncommitted changes. A new Git worktree starts from a Git
-commit and does not contain the parent's uncommitted state.
+Prefer `skilled_sol_worker` through the host's native Desktop agent tool. Provide
+the full Work Order and exact working directory, and do not pass model or effort
+overrides on this path because the installed role owns `gpt-5.6-sol` and `xhigh`.
+
+If the native tool rejects `skilled_sol_worker` as unknown or unavailable, retry
+the same Work Order with `agent_type` omitted and all of these explicit native
+spawn parameters:
+
+```text
+model = "gpt-5.6-sol"
+reasoning_effort = "xhigh"
+fork_turns = "none"  # or a positive bounded turn count
+```
+
+Do not use a built-in fixed-model `agent_type` for the fallback, and do not use
+`fork_turns = "all"` with model overrides. This remains a Codex Desktop native
+subagent; never replace it with `codex exec`, a Router, or an external API. Record
+`custom_role` or `explicit_model_fallback`, the exact parameters, the role failure
+when applicable, and whether the host exposed the actual model and effort. A
+requested model is not host-observed evidence.
+
+Use the same workspace when the worker must see uncommitted changes. A new Git
+worktree starts from a Git commit and does not contain the parent's uncommitted
+state.
 
 While Sol owns a path, Astra and other writers do not edit it. A separate agent
 thread is not workspace isolation. Before parallel dispatch, verify independent

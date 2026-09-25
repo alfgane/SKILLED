@@ -1,5 +1,5 @@
 {
-  "schema_version": 1,
+  "schema_version": 2,
   "work_order": {
     "id": "REPLACE_ME",
     "goal": "REPLACE_ME",
@@ -12,6 +12,16 @@
     "tests": ["REPLACE_ME"],
     "out_of_scope": ["REPLACE_ME"],
     "escalate_if": ["REPLACE_ME"]
+  },
+  "dispatch": {
+    "path": "custom_role",
+    "agent_type": "skilled_sol_worker",
+    "requested_model": "gpt-5.6-sol",
+    "requested_reasoning_effort": "xhigh",
+    "fork_turns": "all",
+    "fallback_reason": "not_applicable",
+    "observed_model": "unverified",
+    "observed_reasoning_effort": "unverified"
   },
   "worker_result": {
     "task_id": "REPLACE_ME",

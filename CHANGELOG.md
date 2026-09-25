@@ -1,5 +1,20 @@
 # Changelog
 
+## 2.0.1 - 2026-09-25
+
+- Prefer the installed `skilled_sol_worker` role, then fall back to a Codex
+  Desktop native spawn with no fixed agent type and explicit
+  `gpt-5.6-sol` / `xhigh` parameters when the role is unavailable.
+- Require non-full-history `fork_turns` for the explicit-model fallback and
+  record the dispatch path, fallback reason, request parameters, and separately
+  observed model evidence in workflow schema 2.
+- Correct the earlier Desktop smoke record: it proves a native reviewed
+  delegation, while the effective model remained unobserved.
+- Record a successful no-role Desktop fallback probe while keeping its effective
+  runtime model and effort explicitly unverified.
+- Document that an unknown role in an already-running task does not establish
+  fresh-process discovery behavior.
+
 ## 2.0.0 - 2026-09-24
 
 - Fork the worker seam from DeepSeek/Router routes to the native Codex custom

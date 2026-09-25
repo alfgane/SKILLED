@@ -143,7 +143,7 @@ class AppServerClient:
         threading.Thread(target=self._read, args=(self.process.stdout,), daemon=True).start()
         try:
             self.request(1, "initialize", {
-                "clientInfo": {"name": "skilled_installer", "title": "SKILLED installer", "version": "2.0.0"}
+                "clientInfo": {"name": "skilled_installer", "title": "SKILLED installer", "version": "2.0.1"}
             })
             self.notify("initialized", {})
         except BaseException:

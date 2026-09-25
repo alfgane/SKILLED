@@ -1,7 +1,8 @@
 # <Task ID>: <Complete reviewable deliverable>
 
 ## Assignment
-Executor: skilled_sol_worker
+Preferred executor: skilled_sol_worker
+Fallback executor: native Desktop spawn with agent_type omitted, explicit gpt-5.6-sol/xhigh, and non-full-history fork_turns
 Workspace: <exact verified path>
 Baseline: <branch/commit and pre-existing changes, or non-Git snapshot>
 Dependencies: <accepted outputs already present>
